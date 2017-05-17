@@ -1,5 +1,6 @@
 package com.pam.harvestcraft.blocks.growables;
 
+import java.awt.*;
 import java.util.List;
 import java.util.Random;
 
@@ -21,7 +22,9 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.EnumPlantType;
 import net.minecraftforge.common.IPlantable;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.ForgeEventFactory;
+import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.fml.common.FMLLog;
 
 public class BlockPamCrop extends BlockCrops implements IGrowable, IPlantable, PamCropGrowable {
@@ -142,18 +145,20 @@ public class BlockPamCrop extends BlockCrops implements IGrowable, IPlantable, P
 	@Override
 	public void updateTick(World worldIn, BlockPos pos, IBlockState state, Random rand) {
 		this.checkAndDropBlock(worldIn, pos, state);
-
+		
 		if(worldIn.getLightFromNeighbors(pos.up()) >= 9) {
 			int currentGrowthLevel = getMetaFromState(state);
 
-			if(currentGrowthLevel < getMatureAge()) {
-				float f = getGrowthChance(this, worldIn, pos);
+				if(currentGrowthLevel < getMatureAge()) {
+					float f = getGrowthChance(this, worldIn, pos);
 
-				if(rand.nextInt((int) (50.0F / f) + 1) == 0) {
-					worldIn.setBlockState(pos, this.getStateFromMeta(currentGrowthLevel + 1), 2);
+					if(net.minecraftforge.common.ForgeHooks.onCropsGrowPre(worldIn, pos, state, rand.nextInt((int) (50.0F / f) + 1) == 0)) {
+						worldIn.setBlockState(pos, this.getStateFromMeta(currentGrowthLevel + 1), 2);
+						net.minecraftforge.common.ForgeHooks.onCropsGrowPost(worldIn, pos, state, worldIn.getBlockState(pos));
+					}
 				}
 			}
-		}
+
 	}
 
 	@Override
